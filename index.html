@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超真实拟态连接按钮</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #e6e9ef, #d1d5db);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 50px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2d3748;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 80px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .button-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .button-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        /* 拟态按钮容器 */
+        .neu-button {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #e6e9ef, #d1d5db);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            /* 精确的拟态阴影 */
+            box-shadow: 
+                9px 9px 16px rgba(163, 170, 180, 0.5),
+                -9px -9px 16px rgba(255, 255, 255, 0.8);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .neu-button:hover {
+            box-shadow: 
+                11px 11px 20px rgba(163, 170, 180, 0.5),
+                -11px -11px 20px rgba(255, 255, 255, 0.8);
+        }
+
+        .neu-button:active {
+            box-shadow: 
+                inset 5px 5px 10px rgba(163, 170, 180, 0.5),
+                inset -5px -5px 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 按钮内部凹槽 */
+        .neu-button-track {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #d1d5db, #e6e9ef);
+            box-shadow: 
+                inset 4px 4px 8px rgba(163, 170, 180, 0.4),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 电源图标容器 */
+        .power-icon-container {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 电源图标 - 使用SVG确保精确对齐 */
+        .power-icon {
+            width: 50px;
+            height: 50px;
+            position: relative;
+        }
+
+        .power-icon svg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .power-icon .power-line {
+            fill: none;
+            stroke: #718096;
+            stroke-width: 4;
+            stroke-linecap: round;
+            transition: all 0.3s ease;
+        }
+
+        .power-icon .power-circle {
+            fill: none;
+            stroke: #718096;
+            stroke-width: 4;
+            stroke-linecap: round;
+            transition: all 0.3s ease;
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #a0aec0;
+            transition: all 0.3s ease;
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #718096;
+            transition: all 0.3s ease;
+        }
+
+        /* 连接状态 */
+        .neu-button.connected {
+            box-shadow: 
+                9px 9px 16px rgba(163, 170, 180, 0.5),
+                -9px -9px 16px rgba(255, 255, 255, 0.8),
+                inset 0 0 0 4px rgba(72, 187, 120, 0.2);
+        }
+
+        .neu-button.connected .neu-button-track {
+            background: linear-gradient(145deg, #48bb78, #38a169);
+            box-shadow: 
+                inset 4px 4px 8px rgba(0, 0, 0, 0.2),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.1);
+        }
+
+        .neu-button.connected .power-icon .power-line,
+        .neu-button.connected .power-icon .power-circle {
+            stroke: #ffffff;
+        }
+
+        .neu-button.connected .status-dot {
+            background: #48bb78;
+            box-shadow: 0 0 8px rgba(72, 187, 120, 0.6);
+        }
+
+        .neu-button.connected .status-text {
+            color: #48bb78;
+        }
+
+        /* 脉冲动画 */
+        @keyframes pulse {
+            0% {
+                box-shadow: 
+                    9px 9px 16px rgba(163, 170, 180, 0.5),
+                    -9px -9px 16px rgba(255, 255, 255, 0.8),
+                    inset 0 0 0 4px rgba(72, 187, 120, 0.2),
+                    0 0 0 0 rgba(72, 187, 120, 0.4);
+            }
+            70% {
+                box-shadow: 
+                    9px 9px 16px rgba(163, 170, 180, 0.5),
+                    -9px -9px 16px rgba(255, 255, 255, 0.8),
+                    inset 0 0 0 4px rgba(72, 187, 120, 0.2),
+                    0 0 0 15px rgba(72, 187, 120, 0);
+            }
+            100% {
+                box-shadow: 
+                    9px 9px 16px rgba(163, 170, 180, 0.5),
+                    -9px -9px 16px rgba(255, 255, 255, 0.8),
+                    inset 0 0 0 4px rgba(72, 187, 120, 0.2),
+                    0 0 0 0 rgba(72, 187, 120, 0);
+            }
+        }
+
+        .neu-button.connected {
+            animation: pulse 2s infinite;
+        }
+
+        /* 点击动画 */
+        @keyframes click {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        .neu-button.clicking {
+            animation: click 0.2s ease;
+        }
+
+        /* 信号波纹 */
+        .signal-waves {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            pointer-events: none;
+        }
+
+        .signal-wave {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(72, 187, 120, 0.3);
+            opacity: 0;
+            animation: wave 2s ease-out infinite;
+        }
+
+        .signal-wave:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .signal-wave:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        @keyframes wave {
+            0% {
+                width: 140px;
+                height: 140px;
+                opacity: 0.6;
+            }
+            100% {
+                width: 200px;
+                height: 200px;
+                opacity: 0;
+            }
+        }
+
+        .neu-button.connected .signal-wave {
+            opacity: 1;
+        }
+
+        /* 蓝色主题 */
+        .neu-button.blue.connected {
+            box-shadow: 
+                9px 9px 16px rgba(163, 170, 180, 0.5),
+                -9px -9px 16px rgba(255, 255, 255, 0.8),
+                inset 0 0 0 4px rgba(66, 153, 225, 0.2);
+        }
+
+        .neu-button.blue.connected .neu-button-track {
+            background: linear-gradient(145deg, #4299e1, #3182ce);
+        }
+
+        .neu-button.blue.connected .status-dot {
+            background: #4299e1;
+            box-shadow: 0 0 8px rgba(66, 153, 225, 0.6);
+        }
+
+        .neu-button.blue.connected .status-text {
+            color: #4299e1;
+        }
+
+        .neu-button.blue.connected .signal-wave {
+            border-color: rgba(66, 153, 225, 0.3);
+        }
+
+        /* 紫色主题 */
+        .neu-button.purple.connected {
+            box-shadow: 
+                9px 9px 16px rgba(163, 170, 180, 0.5),
+                -9px -9px 16px rgba(255, 255, 255, 0.8),
+                inset 0 0 0 4px rgba(159, 122, 234, 0.2);
+        }
+
+        .neu-button.purple.connected .neu-button-track {
+            background: linear-gradient(145deg, #9f7aea, #805ad5);
+        }
+
+        .neu-button.purple.connected .status-dot {
+            background: #9f7aea;
+            box-shadow: 0 0 8px rgba(159, 122, 234, 0.6);
+        }
+
+        .neu-button.purple.connected .status-text {
+            color: #9f7aea;
+        }
+
+        .neu-button.purple.connected .signal-wave {
+            border-color: rgba(159, 122, 234, 0.3);
+        }
+
+        /* 小型按钮 */
+        .neu-button.small {
+            width: 120px;
+            height: 120px;
+        }
+
+        .neu-button.small .neu-button-track {
+            width: 90px;
+            height: 90px;
+        }
+
+        .neu-button.small .power-icon {
+            width: 35px;
+            height: 35px;
+        }
+
+        .neu-button.small .signal-waves {
+            width: 140px;
+            height: 140px;
+        }
+
+        .neu-button.small .signal-wave {
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes wave-small {
+            0% {
+                width: 90px;
+                height: 90px;
+                opacity: 0.6;
+            }
+            100% {
+                width: 140px;
+                height: 140px;
+                opacity: 0;
+            }
+        }
+
+        .neu-button.small.connected .signal-wave {
+            animation: wave-small 2s ease-out infinite;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .button-group {
+                gap: 50px;
+            }
+
+            .neu-button {
+                width: 140px;
+                height: 140px;
+            }
+
+            .neu-button-track {
+                width: 110px;
+                height: 110px;
+            }
+
+            .power-icon {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div>
+            <h1 class="title">超真实拟态连接按钮</h1>
+            <p class="subtitle">Ultra Realistic Neumorphism Connect Button</p>
+        </div>
+
+        <div class="button-group">
+            <!-- 默认绿色主题 -->
+            <div class="button-wrapper">
+                <button class="neu-button" onclick="toggleConnection(this)">
+                    <div class="neu-button-track">
+                        <div class="power-icon">
+                            <svg viewBox="0 0 50 50">
+                                <line class="power-line" x1="25" y1="8" x2="25" y2="25"/>
+                                <path class="power-circle" d="M 15 25 A 10 10 0 1 0 35 25" fill="none"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="signal-waves">
+                        <div class="signal-wave"></div>
+                        <div class="signal-wave"></div>
+                        <div class="signal-wave"></div>
+                    </div>
+                </button>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span class="status-text">未连接</span>
+                </div>
+                <span class="button-label">绿色主题</span>
+            </div>
+
+            <!-- 蓝色主题 -->
+            <div class="button-wrapper">
+                <button class="neu-button blue" onclick="toggleConnection(this)">
+                    <div class="neu-button-track">
+                        <div class="power-icon">
+                            <svg viewBox="0 0 50 50">
+                                <line class="power-line" x1="25" y1="8" x2="25" y2="25"/>
+                                <path class="power-circle" d="M 15 25 A 10 10 0 1 0 35 25" fill="none"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="signal-waves">
+                        <div class="signal-wave"></div>
+                        <div class="signal-wave"></div>
+                        <div class="signal-wave"></div>
+                    </div>
+                </button>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span class="status-text">未连接</span>
+                </div>
+                <span class="button-label">蓝色主题</span>
+            </div>
+
+            <!-- 紫色主题 -->
+            <div class="button-wrapper">
+                <button class="neu-button purple" onclick="toggleConnection(this)">
+                    <div class="neu-button-track">
+                        <div class="power-icon">
+                            <svg viewBox="0 0 50 50">
+                                <line class="power-line" x1="25" y1="8" x2="25" y2="25"/>
+                                <path class="power-circle" d="M 15 25 A 10 10 0 1 0 35 25" fill="none"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="signal-waves">
+                        <div class="signal-wave"></div>
+                        <div class="signal-wave"></div>
+                        <div class="signal-wave"></div>
+                    </div>
+                </button>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span class="status-text">未连接</span>
+                </div>
+                <span class="button-label">紫色主题</span>
+            </div>
+        </div>
+
+        <!-- 小型按钮 -->
+        <div class="button-group">
+            <div class="button-wrapper">
+                <button class="neu-button small" onclick="toggleConnection(this)">
+                    <div class="neu-button-track">
+                        <div class="power-icon">
+                            <svg viewBox="0 0 50 50">
+                                <line class="power-line" x1="25" y1="8" x2="25" y2="25"/>
+                                <path class="power-circle" d="M 15 25 A 10 10 0 1 0 35 25" fill="none"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="signal-waves">
+                        <div class="signal-wave"></div>
+                        <div class="signal-wave"></div>
+                        <div class="signal-wave"></div>
+                    </div>
+                </button>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span class="status-text" style="font-size: 12px;">未连接</span>
+                </div>
+                <span class="button-label">小型按钮</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleConnection(button) {
+            // 添加点击动画
+            button.classList.add('clicking');
+            setTimeout(() => {
+                button.classList.remove('clicking');
+            }, 200);
+
+            // 切换连接状态
+            button.classList.toggle('connected');
+
+            // 更新状态文字
+            const statusText = button.closest('.button-wrapper').querySelector('.status-text');
+            const isConnected = button.classList.contains('connected');
+            
+            statusText.textContent = isConnected ? '已连接' : '未连接';
+        }
+
+        // 键盘支持
+        document.querySelectorAll('.neu-button').forEach(button => {
+            button.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleConnection(button);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
