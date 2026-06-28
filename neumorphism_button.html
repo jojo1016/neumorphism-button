@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拟态连接按钮</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #2d2d2d;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.container {
+  text-align: center;
+}
+
+/* 底层轮廓 - 渐变背景 */
+.button-wrapper {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #3a3a3a, #252525);
+  box-shadow:
+    /* 外阴影1 - 左上 */
+    -12px -12px 24px rgba(70, 70, 70, 0.4),
+    /* 外阴影2 - 右下 */
+    12px 12px 24px rgba(0, 0, 0, 0.6),
+    /* 内阴影1 - 顶部高光 */
+    inset -6px -6px 12px rgba(70, 70, 70, 0.3),
+    /* 内阴影2 - 底部暗部 */
+    inset 6px 6px 12px rgba(0, 0, 0, 0.5),
+    /* 内阴影3 - 深层 */
+    inset -2px -2px 6px rgba(60, 60, 60, 0.2),
+    /* 内阴影4 - 更深层 */
+    inset 2px 2px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 中间缝隙层 */
+.gap-ring {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #282828, #323232);
+  box-shadow:
+    /* 凹陷阴影1 */
+    inset 4px 4px 8px rgba(0, 0, 0, 0.6),
+    /* 凹陷阴影2 */
+    inset -4px -4px 8px rgba(50, 50, 50, 0.3);
+}
+
+/* 按键主体 */
+.button {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #3d3d3d, #2a2a2a);
+  box-shadow:
+    /* 底部阴影1 - 构建体积 */
+    -8px -8px 16px rgba(60, 60, 60, 0.5),
+    /* 底部阴影2 - 深层体积 */
+    8px 8px 16px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+/* 按键顶部纯色层 */
+.button::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #454545, #333);
+  z-index: -1;
+}
+
+/* 圆形阴影遮罩 */
+.button::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* 指示灯 */
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #555;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 0 2px #444;
+}
+
+/* 指示灯亮起状态 */
+.button-wrapper.active .indicator {
+  background: #00ff88;
+  box-shadow:
+    0 0 0 2px #00cc6a,
+    0 0 10px rgba(0, 255, 136, 0.5),
+    0 0 20px rgba(0, 255, 136, 0.3);
+  filter: grayscale(0) brightness(1.2);
+}
+
+/* 文字 */
+.button-text {
+  color: #999;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.button-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  color: #00ff88;
+  transition: top 0.3s ease;
+}
+
+.button-wrapper.active .button-text::after {
+  top: 0;
+}
+
+.button-wrapper.active .button-text {
+  color: transparent;
+}
+
+/* 底部三个光源 */
+.light-sources {
+  position: absolute;
+  bottom: -40px;
+  display: flex;
+  gap: 20px;
+}
+
+.light {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #444;
+  transition: all 0.3s ease;
+  transition-delay: 0s;
+}
+
+.light:nth-child(1) { transition-delay: 0.05s; }
+.light:nth-child(2) { transition-delay: 0.1s; }
+.light:nth-child(3) { transition-delay: 0.15s; }
+
+.button-wrapper.active .light {
+  background: #00ff88;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+}
+
+/* 按下状态 */
+.button-wrapper:active .button {
+  transform: scale(0.95);
+  box-shadow:
+    -4px -4px 8px rgba(60, 60, 60, 0.3),
+    4px 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.button-wrapper.active .button {
+  box-shadow:
+    -6px -6px 12px rgba(60, 60, 60, 0.4),
+    6px 6px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* 标题 */
+.title {
+  color: #666;
+  margin-top: 60px;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+/* 连接动画 */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.button-wrapper.active .indicator {
+  animation: pulse 2s infinite;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="button-wrapper" id="connectBtn" onclick="toggleConnect()">
+    <div class="gap-ring"></div>
+    <div class="button">
+      <div class="indicator"></div>
+      <div class="button-text" data-text="已连接">连接中</div>
+    </div>
+    <div class="light-sources">
+      <div class="light"></div>
+      <div class="light"></div>
+      <div class="light"></div>
+    </div>
+  </div>
+  <div class="title">拟态连接按钮</div>
+</div>
+
+<script>
+function toggleConnect() {
+  const btn = document.getElementById('connectBtn');
+  btn.classList.toggle('active');
+}
+</script>
+
+</body>
+</html>
